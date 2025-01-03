@@ -1,6 +1,6 @@
-import tkinter as tk
+import pygame
 import numpy as np
-import random
+
 class SandDrop:
     def __init__(self):
         self.root = tk.Tk()
@@ -39,11 +39,8 @@ class SandDrop:
         for row in range(self.rows):
             for col in range(self.cols):
                 if self.current_grid[row][col] == 1:
-                    if row < self.rows - 1 and self.current_grid[row + 1][col] == 0:
-                        new_grid[row + 1][col] = 1
-                        new_grid[row][col] = 0
-                    elif row < self.rows - 1 and self.current_grid[row + 1][col] == 1:
-                        None
+                    below = self.current_grid[row + 1][col]
+                    left = self.current_grid[]
 
 
         self.current_grid = new_grid
