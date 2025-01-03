@@ -1,5 +1,6 @@
 import tkinter as tk
 import numpy as np
+
 class SandDrop:
     def __init__(self):
         self.root = tk.Tk()
@@ -10,39 +11,47 @@ class SandDrop:
         self.canvas.update()
         self.rows = self.canvas.winfo_height() // self.sand_pixel_size
         self.cols = self.canvas.winfo_width() // self.sand_pixel_size
+        self.rectangles = {}
         self.current_grid = np.zeros((self.rows, self.cols), dtype=int)
+        self.canvas.bind("<Motion>", self.on_hover)
+        self.initialize_grid()
         self.game_running()
 
-
     def game_running(self):
-        self.draw_board()
         self.update_board()
-        self.root.after(100, self.game_running)
+        self.root.after(50, self.game_running)
         self.root.mainloop()
 
-    def draw_board(self):
-        self.canvas.delete("all")
-        for i in range(self.rows):
-            for j in range(self.cols):
-                x1 = i * self.sand_pixel_size
-                y1 = j * self.sand_pixel_size
+    def initialize_grid(self):
+        for row in range(self.rows):
+            for col in range(self.cols):
+                x1 = col * self.sand_pixel_size
+                y1 = row * self.sand_pixel_size
                 x2 = x1 + self.sand_pixel_size
                 y2 = y1 + self.sand_pixel_size
-                if(self.current_grid[i][j] == 1):
-                    self.canvas.create_rectangle(x1, y1, x2, y2, fill="black", width=2)
-                else:
-                    self.canvas.create_rectangle(x1, y1, x2, y2, fill="white", width=2)
+                tag = f"cell-{row}-{col}"
+                rect = self.canvas.create_rectangle(x1, y1, x2, y2, fill="white", width=2, tags=tag)
+                self.rectangles[(row, col)] = rect
+
+    def draw_board(self):
+
 
     def update_board(self):
         new_grid = np.copy(self.current_grid)
-        for i in range(self.cols):
-            for j in range(self.rows):
-                if j < self.rows:
-                        if(self.current_grid[i][j] == 1):
-                            if j < self.rows - 1:
-                                below = self.current_grid[i][j + 1]
-                                if below == 0:
-                                    new_grid[i][j + 1] = 1
-                                    new_grid[i][j] = 0
+        for row in range(self.rows):
+            for col in range(self.cols):
+                if self.current_grid[row][col] == 1:
+                    if row < self.rows - 1:  # Check if there's space below
+                        below = self.current_grid[row + 1][col]
+                        if below == 0:
+                            new_grid[row + 1][col] = 1
+                            new_grid[row][col] = 0
         self.current_grid = new_grid
+
+    def on_hover(self, event):
+        col = event.x // self.sand_pixel_size
+        row = event.y // self.sand_pixel_size
+        if 0 <= row < self.rows and 0 <= col < self.cols:
+            self.current_grid[row][col] = 1
+
 SandDrop()
