@@ -3,64 +3,88 @@ import numpy as np
 
 class SandDrop:
     def __init__(self):
-        self.root = tk.Tk()
-        self.root.title("SandDrop")
+        pygame.init()
         self.sand_pixel_size = 10
-        self.canvas = tk.Canvas(self.root, bg="black", height=400, width=400)
-        self.canvas.pack()
-        self.canvas.update()
-        self.rows = self.canvas.winfo_height() // self.sand_pixel_size
-        self.cols = self.canvas.winfo_width() // self.sand_pixel_size
-        self.rectangles = {}
+        self.width, self.height = 600, 600
+        self.rows = self.height // self.sand_pixel_size
+        self.cols = self.width // self.sand_pixel_size
+        self.screen = pygame.display.set_mode((self.width, self.height))
+        pygame.display.set_caption("SandDrop")
+        self.clock = pygame.time.Clock()
         self.current_grid = np.zeros((self.rows, self.cols), dtype=int)
-        #self.canvas.bind("<Motion>", self.on_hover)
-        self.canvas.bind("<Button 1>", self.on_click)
-        self.initialize_grid()
-        self.game_running()
+        self.running = True
 
-    def game_running(self):
-        self.update_board()
-        self.root.after(50, self.game_running)
-        self.root.mainloop()
 
-    def initialize_grid(self):
-        for row in range(self.rows):
-            for col in range(self.cols):
-                x1 = col * self.sand_pixel_size
-                y1 = row * self.sand_pixel_size
-                x2 = x1 + self.sand_pixel_size
-                y2 = y1 + self.sand_pixel_size
-                tag = f"cell-{row}-{col}"
-                rect = self.canvas.create_rectangle(x1, y1, x2, y2, fill="white", width=2, tags=tag)
-                self.rectangles[(row, col)] = rect
+    def run(self):
+        while self.running:
+            self.handle_events()
+            self.update_board()
+            self.draw_board()
+            pygame.display.flip()
+            self.clock.tick(60)
+
+
+    def handle_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.running = False
+            elif event.type == pygame.MOUSEMOTION:
+                x, y = pygame.mouse.get_pos()
+                col = x // self.sand_pixel_size
+                row = y // self.sand_pixel_size
+                if 0 <= row < self.rows and 0 <= col < self.cols:
+                    self.current_grid[row][col] = 1
 
     def update_board(self):
+        below_right = False
+        below_left = False
         new_grid = np.copy(self.current_grid)
         for row in range(self.rows):
             for col in range(self.cols):
-                if self.current_grid[row][col] == 1:
-                    below = self.current_grid[row + 1][col]
-                    left = self.current_grid[]
 
+                if self.current_grid[row][col] == 1:
+
+                    if row < self.rows - 1 and self.current_grid[row + 1][col] == 0:
+                        new_grid[row + 1][col] = 1
+                        new_grid[row][col] = 0
+                    else:
+
+                        below_left = col > 0 and row < self.rows - 1 and self.current_grid[row + 1][col - 1] == 0
+                        below_right = col < self.cols - 1 and row < self.rows - 1 and self.current_grid[row + 1][col + 1] == 0
+
+                        if below_left and below_right:
+                            # Randomly decide which way to move
+                            if np.random.choice([True, False]):
+                                new_grid[row + 1][col - 1] = 1
+                            else:
+                                new_grid[row + 1][col + 1] = 1
+                            new_grid[row][col] = 0
+                        elif below_left:
+                            new_grid[row + 1][col - 1] = 1
+                            new_grid[row][col] = 0
+                        elif below_right:
+                            new_grid[row + 1][col + 1] = 1
+                            new_grid[row][col] = 0
 
         self.current_grid = new_grid
-        self.update_canvas()
 
-    def update_canvas(self):
+
+    def draw_board(self):
+        self.screen.fill((0, 0, 0))
         for row in range(self.rows):
             for col in range(self.cols):
-                color = "black" if self.current_grid[row][col] == 1 else "white"
-                self.canvas.itemconfig(self.rectangles[(row, col)], fill=color)
+                color = (0, 0, 0) if self.current_grid[row][col] == 0 else (255, 255, 255)
+                pygame.draw.rect(
+                    self.screen,
+                    color,
+                    pygame.Rect(
+                        col * self.sand_pixel_size,
+                        row * self.sand_pixel_size,
+                        self.sand_pixel_size,
+                        self.sand_pixel_size,
+                        ),
+                )
 
-    # def on_hover(self, event):
-    #     col = event.x // self.sand_pixel_size
-    #     row = event.y // self.sand_pixel_size
-    #     if 0 <= row < self.rows and 0 <= col < self.cols:
-    #         self.current_grid[row][col] = 1
-    def on_click(self, event):
-      col = event.x // self.sand_pixel_size
-      row = event.y // self.sand_pixel_size
-      if 0 <= row < self.rows and 0 <= col < self.cols:
-          self.current_grid[row][col] = 1
 
-SandDrop()
+game = SandDrop()
+game.run()
