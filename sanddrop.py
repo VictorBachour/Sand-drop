@@ -1,6 +1,6 @@
 import tkinter as tk
 import numpy as np
-
+import random
 class SandDrop:
     def __init__(self):
         self.root = tk.Tk()
@@ -13,7 +13,8 @@ class SandDrop:
         self.cols = self.canvas.winfo_width() // self.sand_pixel_size
         self.rectangles = {}
         self.current_grid = np.zeros((self.rows, self.cols), dtype=int)
-        self.canvas.bind("<Motion>", self.on_hover)
+        #self.canvas.bind("<Motion>", self.on_hover)
+        self.canvas.bind("<Button 1>", self.on_click)
         self.initialize_grid()
         self.game_running()
 
@@ -33,25 +34,36 @@ class SandDrop:
                 rect = self.canvas.create_rectangle(x1, y1, x2, y2, fill="white", width=2, tags=tag)
                 self.rectangles[(row, col)] = rect
 
-    def draw_board(self):
-
-
     def update_board(self):
         new_grid = np.copy(self.current_grid)
         for row in range(self.rows):
             for col in range(self.cols):
                 if self.current_grid[row][col] == 1:
-                    if row < self.rows - 1:  # Check if there's space below
-                        below = self.current_grid[row + 1][col]
-                        if below == 0:
-                            new_grid[row + 1][col] = 1
-                            new_grid[row][col] = 0
-        self.current_grid = new_grid
+                    if row < self.rows - 1 and self.current_grid[row + 1][col] == 0:
+                        new_grid[row + 1][col] = 1
+                        new_grid[row][col] = 0
+                    elif row < self.rows - 1 and self.current_grid[row + 1][col] == 1:
+                        None
 
-    def on_hover(self, event):
-        col = event.x // self.sand_pixel_size
-        row = event.y // self.sand_pixel_size
-        if 0 <= row < self.rows and 0 <= col < self.cols:
-            self.current_grid[row][col] = 1
+
+        self.current_grid = new_grid
+        self.update_canvas()
+
+    def update_canvas(self):
+        for row in range(self.rows):
+            for col in range(self.cols):
+                color = "black" if self.current_grid[row][col] == 1 else "white"
+                self.canvas.itemconfig(self.rectangles[(row, col)], fill=color)
+
+    # def on_hover(self, event):
+    #     col = event.x // self.sand_pixel_size
+    #     row = event.y // self.sand_pixel_size
+    #     if 0 <= row < self.rows and 0 <= col < self.cols:
+    #         self.current_grid[row][col] = 1
+    def on_click(self, event):
+      col = event.x // self.sand_pixel_size
+      row = event.y // self.sand_pixel_size
+      if 0 <= row < self.rows and 0 <= col < self.cols:
+          self.current_grid[row][col] = 1
 
 SandDrop()
