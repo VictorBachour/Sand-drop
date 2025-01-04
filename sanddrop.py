@@ -30,14 +30,23 @@ class SandDrop:
                 self.running = False
             elif event.type == pygame.MOUSEMOTION:
                 x, y = pygame.mouse.get_pos()
-                col = x // self.sand_pixel_size
-                row = y // self.sand_pixel_size
-                if 0 <= row < self.rows and 0 <= col < self.cols:
-                    self.current_grid[row][col] = 1
+                mouse_col = x // self.sand_pixel_size
+                mouse_row = y // self.sand_pixel_size
+
+                blocks_dropping_at_once = 5
+                space = (blocks_dropping_at_once // 2)
+
+                for i in range(space):
+                    for j in range(space):
+
+                        col = mouse_col + i
+                        row = mouse_row + j
+
+                        if 0 <= row < self.rows and 0 <= col < self.cols:
+                            self.current_grid[row][col] = 1
+
 
     def update_board(self):
-        below_right = False
-        below_left = False
         new_grid = np.copy(self.current_grid)
         for row in range(self.rows):
             for col in range(self.cols):
@@ -53,7 +62,7 @@ class SandDrop:
                         below_right = col < self.cols - 1 and row < self.rows - 1 and self.current_grid[row + 1][col + 1] == 0
 
                         if below_left and below_right:
-                            # Randomly decide which way to move
+
                             if np.random.choice([True, False]):
                                 new_grid[row + 1][col - 1] = 1
                             else:
